@@ -11,9 +11,11 @@ Information Retrieval and RAG system developed for the Information Retrieval cou
   <tr>
     <td><b>Τζαγκαράκη Ελένη Σοφία</b></td>
     <td>1110616</td>
+    <td>3</td>
   </tr>
   <tr>
     <td><b>Αντωνόπουλος Σπύρος</b></td>
     <td>1101924</td>
+     <td>3</td>
   </tr>
 </table>
