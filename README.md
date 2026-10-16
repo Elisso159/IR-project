@@ -1,5 +1,5 @@
 # Information Retrieval 
-Information Retrieval and RAG system developed for the Information Retrieval course for (CEID, University of Patras, 2026-2027)
+Σύστημα Ανάκτησης Πληροφορίας και RAG που αναπτύχθηκε για το μάθημα της Ανάκτησης Πληροφορίας (CEID – Πανεπιστήμιο Πατρών, 2026-2027)
 
 
 <table>
