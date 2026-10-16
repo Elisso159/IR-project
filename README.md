@@ -2,6 +2,18 @@
 Information Retrieval and RAG system developed for the Information Retrieval course for (CEID, University of Patras, 2026-2027)
 
 
-Team Members:
-Τζαγκαράκη Ελένη Σοφία (ΑΜ: 1110616)
-Αντωνόπουλος Σπύρος (ΑΜ: 1101924)
+<table>
+  <tr>
+    <th>Μέλος Ομάδας</th>
+    <th>Αριθμός Μητρώου </th>
+    <th>Έτος</th>
+  </tr>
+  <tr>
+    <td><b>Τζαγκαράκη Ελένη Σοφία</b></td>
+    <td>1110616</td>
+  </tr>
+  <tr>
+    <td><b>Αντωνόπουλος Σπύρος</b></td>
+    <td>1101924</td>
+  </tr>
+</table>
