@@ -1,3 +1,4 @@
+# Information Retrieval 
 Information Retrieval and RAG system developed for the Information Retrieval course for (CEID, University of Patras, 2026-2027)
 
 
