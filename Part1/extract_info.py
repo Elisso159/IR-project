@@ -137,7 +137,10 @@ try:
         print(f"Επιτυχής εισαγωγή {success} νέων εγγράφων στο Elasticsearch!")
     else:
         print("Όλα τα έγγραφα υπάρχουν ήδη στη βάση. Δεν έγινε καμία νέα εισαγωγή.")
-
-    es.close()
+        
 except Exception as e:
     print("Αποτυχία σύνδεσης ή εκτέλεσης με σφάλμα:", e)
+    
+#Κλείνει το connection με την elasticsearch
+finally:
+    es.close()
