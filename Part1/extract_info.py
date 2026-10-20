@@ -107,8 +107,8 @@ try:
         print(f"Το index '{index_name}' υπάρχει ήδη.")
 
     # Ανάγνωση αρχείων
-    #base_dir = "../data"
-    base_dir = "/home/totoro/Έγγραφα/University/Seventh_Semester/Ανάκτηση_Πληροφορίας/Project/cfc"
+    base_dir = "../data"
+    #base_dir = "/home/totoro/Έγγραφα/University/Seventh_Semester/Ανάκτηση_Πληροφορίας/Project/cfc"
     file_names = ['cf74', 'cf75', 'cf76', 'cf77', 'cf78', 'cf79']
     file_paths = [os.path.join(base_dir, f) for f in file_names]
 
