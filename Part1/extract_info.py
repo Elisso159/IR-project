@@ -88,27 +88,27 @@ try:
                 "rn": {"type": "integer"},
                 "an": {"type": "keyword"},
                 "au": {"type": "text"},
-                "ti": {"type": "text"},
+                "ti": {"type": "text", "analyzer":"english"},
                 "so": {"type": "text"},
-                "mj": {"type": "text"},
-                "mn": {"type": "text"},
-                "ab_ex": {"type": "text"},
+                "mj": {"type": "text","analyzer":"english"},
+                "mn": {"type": "text","analyzer":"english"},
+                "ab_ex": {"type": "text","analyzer":"english"},
                 "rf": {"type": "text"},
                 "ct": {"type": "text"}
             }
         }
     }
 
-    # Δημιουργία Index αν δεν υπάρχει
-    if not es.indices.exists(index=index_name):
-        es.indices.create(index=index_name, body=mapping)
-        print(f"Το index '{index_name}' δημιουργήθηκε")
-    else:
-        print(f"Το index '{index_name}' υπάρχει ήδη.")
+    # Δημιουργία Index
+    if es.indices.exists(index=index_name):
+        es.indices.delete(index=index_name)
+
+    es.indices.create(index=index_name, body=mapping)
+    print(f"Το index '{index_name}' δημιουργήθηκε με επιτυχία.")
 
     # Ανάγνωση αρχείων
-    base_dir = "../data"
-    #base_dir = "/home/totoro/Έγγραφα/University/Seventh_Semester/Ανάκτηση_Πληροφορίας/Project/cfc"
+    #base_dir = "../data"
+    base_dir = "/home/totoro/Έγγραφα/University/Seventh_Semester/Ανάκτηση_Πληροφορίας/Project/cfc"
     file_names = ['cf74', 'cf75', 'cf76', 'cf77', 'cf78', 'cf79']
     file_paths = [os.path.join(base_dir, f) for f in file_names]
 
@@ -146,7 +146,7 @@ try:
         print("Όλα τα έγγραφα υπάρχουν ήδη στην Elasticsearch")
 
 
-    test_word = "apple"
+    test_word = "cystic"
     res = invIndex.search(test_word)
     print(f"Αναζήτηση για τη λέξη '{test_word}': βρέθηκε σε {len(res)} έγγραφα.")
 
