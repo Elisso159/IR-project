@@ -146,9 +146,12 @@ try:
         print("Όλα τα έγγραφα υπάρχουν ήδη στην Elasticsearch")
 
 
-    test_word = "cystic"
-    res = invIndex.search(test_word)
-    print(f"Αναζήτηση για τη λέξη '{test_word}': βρέθηκε σε {len(res)} έγγραφα.")
+    #test_word = "cystic"
+    #res = invIndex.search(test_word)
+    #print(f"Αναζήτηση για τη λέξη '{test_word}': βρέθηκε σε {len(res)} έγγραφα.")
+
+    #for doc_id, freq in list(res.items())[:5]:
+       # print(f" Έγγραφο: {doc_id} με freq: {freq}")
 
 
 except Exception as e:
