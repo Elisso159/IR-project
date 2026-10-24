@@ -2,27 +2,31 @@ import re
 from collections import defaultdict
 
 class InvIndexing:
-	def __init__(self, fields = []):
-		self.fields = fields
-		self.index = defaultdict(list) 
+    def __init__(self, fields=[]):
+        self.fields = fields
+        self.index = defaultdict(dict)  
 
-	def build_indexing(self, docs):
-		self.index.clear()
+    def build_indexing(self, docs):
+        self.index.clear()
 
-		for d in docs:
-			doc_id = d.get("rn")
+        for d in docs:
+            doc_id = d.get("rn")
 
-			if doc_id is None:
-				continue
+            if doc_id is None:
+                continue
 
-			information = [str(d.get(field,'')) for field in self.fields]
-			text = "".join(information)
+            information = [str(d.get(field, '')) for field in self.fields]
+            text = " ".join(information)
 
-			tokens = re.findall(r'\b\w+\b',text.lower())
+            tokens = re.findall(r'\b\w+\b', text.lower())
 
-			for token in set(tokens):
-				self.index[token].append(doc_id)
+            term_freqs = {}
+            for token in tokens:
+                term_freqs[token] = term_freqs.get(token, 0) + 1
 
-	def search(self,word):
-		word = word.lower()
-		return self.index.get(word, [])
+            for token, freq in term_freqs.items():
+                self.index[token][doc_id] = freq
+
+    def search(self, word):
+        word = word.lower()
+        return self.index.get(word, {})
