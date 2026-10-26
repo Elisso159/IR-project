@@ -3,15 +3,29 @@ import re
 from elasticsearch import Elasticsearch, helpers
 from inverted_index import InvIndexing
 
-#Ανάκτηση αρχείων και δημιουργία dictionaries
+
+def normalize_text(text):
+    if not text:
+        return ""
+
+    #Αφαίρεση σημείων στήξης
+    text = re.sub(r'[^\w\s]', '', text)
+
+    #Αφαίρεση πολλαπλών κενών
+    text = re.sub(r'\s+', ' ', text)
+
+    return text.strip()
+
+
+
 def get_cf(file_path):
     with open(file_path, 'r', encoding='utf-8', errors='ignore') as cff:
         content = cff.read()
 
-    #Χωρισμός κάθε paper
+    # Χωρισμός αρχείου σε κάθε paper
     raw_data = re.split(r'\n(?=PN)', content)
 
-    #Map κάθε section
+    # Map κάθε section
     field_map = {
         'PN': 'pn',
         'RN': 'rn',
@@ -28,9 +42,8 @@ def get_cf(file_path):
 
     data = []
 
-    #Επεξεργασία κάθε paper
+    # Επεξεργασία κάθε paper
     for raw in raw_data:
-        #Αν το αρχείο είναι κενό
         if not raw.strip():
             continue
 
@@ -40,44 +53,39 @@ def get_cf(file_path):
         current_val = []
 
         for line in lines:
-            #Εντοπίζουμε αν η κάθε ξεκινάει με κάποια ετικέτα
             tag_match = re.match(r'^([A-Z]{2}|AB/EX)\s+(.*)', line)
             if tag_match:
                 if current_tag and current_tag in field_map:
                     field_name = field_map[current_tag]
-                    d[field_name] = " ".join(current_val).strip()
 
-                #Παίρνουμε την καινούργια ετικέτα και την τιμή της
+                    d[field_name] = normalize_text(" ".join(current_val).strip())
+
                 tag, val = tag_match.groups()
                 current_tag = tag if tag != 'AB/EX' else 'AB'
                 current_val = [val]
-
-            #Αν η γραμμή δεν έχει ετικέτα τότε είναι συνέχεια του προηγούμενου section
             else:
                 if current_tag:
                     current_val.append(line.strip())
 
         if current_tag and current_tag in field_map:
-            d[field_map[current_tag]] = " ".join(current_val).strip()
+            d[field_map[current_tag]] = normalize_text(" ".join(current_val).strip())
 
-        #Μετατροπή του RN σε integer
         if 'rn' in d:
             try:
                 d['rn'] = int(d['rn'])
             except ValueError:
                 pass
 
-        # Αν το έγγραφο δεν είναι κενό, το προσθέτουμε στη λίστα                
         if d:
             data.append(d)
 
     return data
 
 try:
-    # Δημιουργία σύνδεσης με Elasticsearch
-    es = Elasticsearch("http://localhost:9200")
+    #Σύνδεση με Elasticsearch 
+    es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", "******"))
     info = es.info()
-    print("Success! Επιτυχής σύνδεση.")
+    print("Επιτυχής σύνδεση")
     
     index_name = "cystic_fibrosis"
 
@@ -88,18 +96,18 @@ try:
                 "rn": {"type": "integer"},
                 "an": {"type": "keyword"},
                 "au": {"type": "text"},
-                "ti": {"type": "text", "analyzer":"english"},
+                "ti": {"type": "text"},
                 "so": {"type": "text"},
-                "mj": {"type": "text","analyzer":"english"},
-                "mn": {"type": "text","analyzer":"english"},
-                "ab_ex": {"type": "text","analyzer":"english"},
+                "mj": {"type": "text"},
+                "mn": {"type": "text"},
+                "ab_ex": {"type": "text"},
                 "rf": {"type": "text"},
                 "ct": {"type": "text"}
             }
         }
     }
 
-    # Δημιουργία Index
+    # Δημιουργία Index στη βάση
     if es.indices.exists(index=index_name):
         es.indices.delete(index=index_name)
 
@@ -107,30 +115,21 @@ try:
     print(f"Το index '{index_name}' δημιουργήθηκε με επιτυχία.")
 
     # Ανάγνωση αρχείων
-    #base_dir = "../data"
+    # base_dir = ../data"
     base_dir = "/home/totoro/Έγγραφα/University/Seventh_Semester/Ανάκτηση_Πληροφορίας/Project/cfc"
     file_names = ['cf74', 'cf75', 'cf76', 'cf77', 'cf78', 'cf79']
     file_paths = [os.path.join(base_dir, f) for f in file_names]
 
     documents = []
-
     for file in file_paths:
-        #print(f"Διαβάζεται το αρχείο: {file}")
         documents.extend(get_cf(file))
 
     print(f"Συνολικά συλλέχθηκαν {len(documents)} έγγραφα από τα αρχεία")
 
-    #Δημιουργία indexing
-    invIndex = InvIndexing(fields = ('ti', 'ab_ex'))
-    invIndex.build_indexing(documents)
-    print("Δημιουργήθηκε επιτυχώς το αντεστραμμένο ευρετήριο")
-
-
-    # Έλεγχος αν το έγγραφο υπάρχει ήδη στην Elasticsearch
+    # Έλεγχος και μαζική εισαγωγή εγγράφων στην Elasticsearch
     papers = []
     for doc in documents:
         doc_id = doc.get("rn")
-        # Αν δεν υπάρχει ήδη στη βάση, το προσθέτουμε προς ανέβασμα
         if not es.exists(index=index_name, id=doc_id):
             papers.append({
                 "_index": index_name,
@@ -138,25 +137,25 @@ try:
                 "_source": doc
             })
 
-    # Μαζική εισαγωγή μόνο των νέων εγγράφων
     if papers:
         success, _ = helpers.bulk(es, papers)
-        print(f"Επιτυχής εισαγωγή {success} νέων εγγράφων στην Elasticsearch")
+        print(f"Επιτυχής εισαγωγή {success} των εγγράφων")
     else:
-        print("Όλα τα έγγραφα υπάρχουν ήδη στην Elasticsearch")
+        print("Όλα τα έγγραφα υπάρχουν ήδη")
 
+    #Δημιουργία Inverted Index
+    invIndex = InvIndexing(fields=('ti', 'ab_ex'))
+    invIndex.build_indexing(documents)
+    invIndex.save_index_to_elastic_search()
 
-    #test_word = "cystic"
-    #res = invIndex.search(test_word)
-    #print(f"Αναζήτηση για τη λέξη '{test_word}': βρέθηκε σε {len(res)} έγγραφα.")
+    es.indices.refresh(index="my_inverted_index")
 
-    #for doc_id, freq in list(res.items())[:5]:
-       # print(f" Έγγραφο: {doc_id} με freq: {freq}")
-
+    res = es.search(index="my_inverted_index", query={"match_all": {}}, size=2)
+    for hit in res["hits"]["hits"]:
+        print(f"Term (_id): {hit['_id']} -> Source: {hit['_source']}")
 
 except Exception as e:
     print("Αποτυχία σύνδεσης ή εκτέλεσης με σφάλμα:", e)
-
 
 finally:
     es.close()
