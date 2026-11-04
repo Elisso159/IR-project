@@ -1,7 +1,7 @@
 import math
 import re
-from collections import defaultdict
 from elasticsearch import Elasticsearch, helpers
+from collections import defaultdict
 
 class InvIndexing:
     def __init__(self, fields=[]):
@@ -40,13 +40,13 @@ class InvIndexing:
             for token, freq in term_freqs.items():
                 self.index[token][doc_id] = freq
 
-        # Υπολογισμός μέσου όρου
+        # Υπολογισμός μέσου όρου 
         if self.total_docs > 0:
             self.avg_doc_length = total_length / self.total_docs
 
 
     def save_index_to_elastic_search(self):
-        es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", "******"))
+        es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", "703d1bed99E!"))
         try:
             if es.indices.exists(index=self.index_name):
                 es.indices.delete(index=self.index_name)
