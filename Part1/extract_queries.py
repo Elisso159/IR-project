@@ -58,7 +58,6 @@ def get_cf(file_path):
                 if current_key:
                     current_val.append(line.strip())
 
-        # Επεξεργασία και για το τελευταίο πεδίο 
         if current_key:
             val = " ".join(current_val).strip()
             if current_key == "rd":
