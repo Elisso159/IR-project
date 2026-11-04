@@ -3,21 +3,7 @@ import re
 import unicodedata
 from elasticsearch import Elasticsearch, helpers
 from inverted_index import InvIndexing
-
-
-def normalize_text(text):
-    if not text:
-        return ""
-
-    #Αφαίρεση σημείων στήξης
-    text = re.sub(r'[^\w\s]', '', text)
-
-    #Αφαίρεση πολλαπλών κενών
-    text = re.sub(r'\s+', ' ', text)
-
-    return text.strip()
-
-
+from ../text_proc import TextProcessing
 
 def get_cf(file_path):
     with open(file_path, 'r', encoding='utf-8', errors='ignore') as cff:
@@ -52,14 +38,15 @@ def get_cf(file_path):
         lines = raw.split('\n')
         current_tag = None
         current_val = []
+        tp = TextProcessing()
+
 
         for line in lines:
             tag_match = re.match(r'^([A-Z]{2}|AB/EX)\s+(.*)', line)
             if tag_match:
                 if current_tag and current_tag in field_map:
                     field_name = field_map[current_tag]
-
-                    d[field_name] = normalize_text(" ".join(current_val).strip())
+                    d[field_name] = tp.normalization(" ".join(current_val).strip())
 
                 tag, val = tag_match.groups()
                 current_tag = tag if tag != 'AB/EX' else 'AB'
@@ -69,7 +56,7 @@ def get_cf(file_path):
                     current_val.append(line.strip())
 
         if current_tag and current_tag in field_map:
-            d[field_map[current_tag]] = normalize_text(" ".join(current_val).strip())
+            d[field_map[current_tag]] =  tp.normalization(" ".join(current_val).strip())
 
         if 'rn' in d:
             try:
@@ -84,7 +71,7 @@ def get_cf(file_path):
 
 try:
     #Σύνδεση με Elasticsearch 
-    es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", "******"))
+    es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", "703d1bed99E!"))
     info = es.info()
     print("Επιτυχής σύνδεση")
     
