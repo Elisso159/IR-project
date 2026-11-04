@@ -71,7 +71,7 @@ def get_cf(file_path):
 
 try:
     #Σύνδεση με Elasticsearch 
-    es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", "703d1bed99E!"))
+    es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", "******"))
     info = es.info()
     print("Επιτυχής σύνδεση")
     
