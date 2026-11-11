@@ -19,7 +19,7 @@ class BM25:
 	def get_statistics(self):
 		es=None
 		try: 
-			es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", "703d1bed99E!"))
+			es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", "*******"))
 			res = es.get(index=self.index, id=self.doc_id)
 			metadata_doc = res["_source"]
 
@@ -66,7 +66,7 @@ class BM25:
 		es = None
 		doc_scores = {}
 		try: 
-			es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", "703d1bed99E!"))
+			es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", "******"))
 			
 			res = es.mget(index=self.index, body={"ids": query_tokens})
 
