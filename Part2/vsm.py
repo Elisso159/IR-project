@@ -5,7 +5,7 @@ from text_proc import TextProcessing
 class VSM:
 	def __init__(self):
 		self.index = "my_inverted_index"
-		self.password = "703d1bed99E!"
+		self.password = "********"
 		self.doc_id = "collection_metadata"
 		self.total_docs = 0
 		self.avg_doc_length = 0.0
