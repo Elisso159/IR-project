@@ -1,7 +1,10 @@
 import math
 import re
+import nltk
 from elasticsearch import Elasticsearch, helpers
 from collections import defaultdict
+from text_proc import TextProcessing
+from nltk.corpus import stopwords
 
 class InvIndexing:
     def __init__(self, fields=[]):
@@ -11,11 +14,17 @@ class InvIndexing:
         self.total_docs = 1239
         self.avg_doc_length = 0.0
         self.index_name = "my_inverted_index"
+        self.doc_max_freqs = {}
+        self.password = "*******"
+
+        nltk.download('stopwords', quiet=True)
   
     def build_indexing(self, docs):
         self.index.clear()
         self.docs_length.clear()
+        self.doc_max_freqs.clear()
         total_length = 0
+        tp = TextProcessing()
 
         for d in docs:
             doc_id = d.get("rn")
@@ -26,7 +35,16 @@ class InvIndexing:
             information = [str(d.get(field, '')) for field in self.fields]
             text = " ".join(information)
 
-            tokens = re.findall(r'\b\w+\b', text.lower())
+            text = tp.remove_punct(text)
+            tokens = text.split()
+
+            if hasattr(tp, 'stop_words'):
+                tokens = [t for t in tokens if t not in tp.stop_words]
+
+            tokens = tp.stemming(tokens)
+            tokens = tp.lemmatization(tokens)
+
+            tokens = tp.generate_ngrams(tokens)
 
             doc_len = len(tokens)
             self.docs_length[doc_id] = doc_len
@@ -37,6 +55,12 @@ class InvIndexing:
             for token in tokens:
                 term_freqs[token] = term_freqs.get(token, 0) + 1
 
+            if term_freqs:
+                self.doc_max_freqs[str(doc_id)]=max(term_freqs.values())
+
+            else:
+                self.doc_max_freqs[str(doc_id)]=1
+
             for token, freq in term_freqs.items():
                 self.index[token][doc_id] = freq
 
@@ -46,7 +70,7 @@ class InvIndexing:
 
 
     def save_index_to_elastic_search(self):
-        es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", "703d1bed99E!"))
+        es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", self.password))
         try:
             if es.indices.exists(index=self.index_name):
                 es.indices.delete(index=self.index_name)
@@ -86,11 +110,14 @@ class InvIndexing:
             metadata_doc = {
                 "total_docs": self.total_docs,
                 "avg_doc_length": self.avg_doc_length,
-                "doc_length": self.docs_length
+                "doc_length": self.docs_length,
+                "doc_max_freq": self.doc_max_freqs
+
             }
 
             es.index(index=self.index_name, id="collection_metadata", body=metadata_doc)
-            
+        except Exception as e:
+            print("Σφάλμα κατά την αποθήκευση στο Elasticsearch:", e)
 
         finally:
             es.close()
