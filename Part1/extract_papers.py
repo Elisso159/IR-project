@@ -1,9 +1,12 @@
 import os
 import re
 import unicodedata
+import string
 from elasticsearch import Elasticsearch, helpers
 from inverted_index import InvIndexing
-from ../text_proc import TextProcessing
+from text_proc import TextProcessing
+
+password = "********"
 
 def get_cf(file_path):
     with open(file_path, 'r', encoding='utf-8', errors='ignore') as cff:
@@ -46,7 +49,7 @@ def get_cf(file_path):
             if tag_match:
                 if current_tag and current_tag in field_map:
                     field_name = field_map[current_tag]
-                    d[field_name] = tp.normalization(" ".join(current_val).strip())
+                    d[field_name] = tp.remove_punct(" ".join(current_val).strip())
 
                 tag, val = tag_match.groups()
                 current_tag = tag if tag != 'AB/EX' else 'AB'
@@ -56,7 +59,7 @@ def get_cf(file_path):
                     current_val.append(line.strip())
 
         if current_tag and current_tag in field_map:
-            d[field_map[current_tag]] =  tp.normalization(" ".join(current_val).strip())
+            d[field_map[current_tag]] =  tp.remove_punct(" ".join(current_val).strip())
 
         if 'rn' in d:
             try:
@@ -71,7 +74,7 @@ def get_cf(file_path):
 
 try:
     #Σύνδεση με Elasticsearch 
-    es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", "******"))
+    es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", password))
     info = es.info()
     print("Επιτυχής σύνδεση")
     
@@ -114,7 +117,6 @@ try:
 
     print(f"Συνολικά συλλέχθηκαν {len(documents)} έγγραφα από τα αρχεία")
 
-    # Έλεγχος και μαζική εισαγωγή εγγράφων στην Elasticsearch
     papers = []
     for doc in documents:
         doc_id = doc.get("rn")
@@ -137,10 +139,6 @@ try:
     invIndex.save_index_to_elastic_search()
 
     es.indices.refresh(index="my_inverted_index")
-
-    res = es.search(index="my_inverted_index", query={"match_all": {}}, size=2)
-    for hit in res["hits"]["hits"]:
-        print(f"Term (_id): {hit['_id']} -> Source: {hit['_source']}")
 
 except Exception as e:
     print("Αποτυχία σύνδεσης ή εκτέλεσης με σφάλμα:", e)
